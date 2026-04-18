@@ -1,0 +1,89 @@
+/*
+=======================================
+DDL Script : create gold views
+=======================================
+
+script purpose : create view for the gold layer in the data ware house
+the gold layer represents final dimensions and fact tables (star schema)
+
+each view are made by transformation of table from silver layer
+
+usage : this view can dirctly used for analytics and reporting purposes
+
+*/
+
+
+
+--gold.fact_sales
+
+create view gold.fact_sales as 
+
+select 
+crs.sls_ord_num as sales_order_number,
+gps.product_key ,
+gcs.customer_key,
+crs.sls_sales as sales,
+crs.sls_quantity as quantity,
+crs.sls_price as price,
+crs.sls_order_dt as order_date,
+crs.sls_ship_dt as ship_date,
+crs.sls_due_dt as due_date
+from silver.crm_sales_details as crs
+left join gold.dim_customers as gcs
+on crs.sls_cust_id=gcs.customer_id
+left join gold.dim_products as gps
+on gps.product_number=crs.sls_prd_key;
+
+
+
+
+
+--gold.dim_products
+
+create view gold.dim_products as 
+
+select
+	row_number() over(order by crp.prd_id) as product_key,
+	crp.prd_id as product_id,
+	crp.prd_key as product_number,
+	crp.prd_nm as product_name,
+	crp.prd_cost as product_cost,
+	crp.ctg_id as category_id,
+	coalesce(erp.CAT,'N/A') as category,
+	coalesce(erp.SUBCAT,'N/A') as sub_category,
+	coalesce(erp.MAINTENANCE,'N/A') as maintaince,
+	crp.prd_line as product_line,
+	crp.prd_start_dt as product_start_date
+from silver.crm_prd_info as crp
+left join silver.erp_px_cat_g1v2 erp
+on		erp.ID=crp.ctg_id
+where crp.prd_end_dt is null;
+
+
+--gold.dim_customers
+
+create view gold.dim_customers as  
+
+select
+	row_number() over(order by crc.cust_id) as customer_key,
+	crc.cust_id as customer_id,
+	crc.cust_key as customer_number,
+	crc.cst_firstname as first_name,
+	crc.cst_lastname as last_name,
+	erl.CNTRY as country,
+	(
+	case
+		when crc.cst_gndr != 'N/A' then crc.cst_gndr
+		else coalesce(erc.GEN,'N/A')
+	end
+	) as gender,
+	crc.cst_marital_status as marital_status,
+	erc.BDATE as date_of_birth,
+	crc.cst_create_date as customer_created_date
+from silver.crm_cust_info as crc
+left join silver.erp_cust_az12 as erc
+on		erc.CID=crc.cust_key
+left join silver.erp_loc_a101 erl
+on		erl.CID=crc.cust_key;
+
+
