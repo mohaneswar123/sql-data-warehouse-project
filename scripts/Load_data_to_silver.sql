@@ -1,4 +1,9 @@
+/*
+Script Purpose : to insert the data from the bronze layer to silver layer tables by data cleaning and data transforming 
 
+Warning : by executing the script the entire data in table will be truncated and the again starts data processing by taking 
+data from bronze layer than insert into silver layer tables
+*/
 
 
 create or alter procedure silver.load_silver as  
