@@ -91,13 +91,13 @@ begin
 
 		(case
 		when upper(trim(cst_marital_status))='M' then 'Married' 
-		when lower(trim(cst_marital_status))='S' then 'Single'
+		when lower(trim(cst_marital_status))='s' then 'Single'
 		else 'N/A' -- normalize marital_status to readable format
 		end )  as cst_marital_status,
 
 		(case
 		when upper(trim(cst_gndr))='M' then 'Male' 
-		when lower(trim(cst_gndr))='F' then 'Female'
+		when lower(trim(cst_gndr))='f' then 'Female'
 		else 'N/A' --normalize the gender into readable format
 		end )  as cst_gndr,
 		cst_create_date
